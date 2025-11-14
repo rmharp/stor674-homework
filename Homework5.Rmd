@@ -513,6 +513,7 @@ Finished at: Fri Nov 14 01:46:26 AM EST 2025
 **Answer:**
 
 This Git, Docker, and HPC workflow significantly enhances computational reproducibility. By versioning the computational environment, the Dockerfile, alongside the code, the .py script, in Git, it captures the entire analysis stack,not just the algorithm, but all its dependencies and system libraries. This creates a portable snapshot that ensures consistent builds and cleaner, more reliable deployments on HPC systems via Apptainer. While this method introduces challenges, such as managing image size, navigating GPU driver-kernel compatibility, and a steeper initial learning curve, these are outweighed by the advantages. Also, these hurdles can be mitigated with clear documentation and CI/CD automation such as through the use of GitHub Actions and Jenkins.
+
 ---
 
 # Submission Checklist
