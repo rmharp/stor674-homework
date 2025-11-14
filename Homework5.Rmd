@@ -125,7 +125,7 @@ Before building your Docker image, you will set up version control for your proj
 
 **GitHub Repository URL:**
 
-https://github.com/rmharp/stor674-homework.git
+https://github.com/rmharp/stor674-homework5.git
 
 
 **b)** (2 points) Clone the repository to your local machine, add the provided files (`compute_bench.py`, this `Homework5.Rmd`), and make your initial commit. What commands did you use?
@@ -134,12 +134,12 @@ https://github.com/rmharp/stor674-homework.git
 
 ```bash
 # Commands you used
-git clone <REPLACE-WITH-YOUR-GITHUB-REPO-URL>
+git clone https://github.com/rmharp/stor674-homework5.git
 cd stor674-homework5
 cp "/Users/riley/Library/CloudStorage/GoogleDrive-rileyharper2142@gmail.com/My Drive/College/Academics/Super Senior Year/First Semester/STOR 674/Homeworks/Homework5/compute_bench.py" .
 cp "/Users/riley/Library/CloudStorage/GoogleDrive-rileyharper2142@gmail.com/My Drive/College/Academics/Super Senior Year/First Semester/STOR 674/Homeworks/Homework5/Homework5.Rmd" .
 git add .
-git commit -m "Initial commit: add benchmark script and homework Rmd"
+git commit -m "Add benchmark script and homework Rmd"
 git push -u origin main
 ```
 
@@ -202,10 +202,10 @@ Create a Dockerfile that:
 # Paste your Dockerfile content here
 FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 WORKDIR /app
-# Optionally upgrade pip and install any extras you might need
+# upgrade pip and install any extras
 RUN pip install --no-cache-dir --upgrade pip
 COPY compute_bench.py /app/compute_bench.py
-# Default command runs the benchmark
+# runs the benchmark
 CMD ["python", "/app/compute_bench.py"]
 ```
 
@@ -223,14 +223,14 @@ CMD ["python", "/app/compute_bench.py"]
 
 ```bash
 # Your command here
-docker build -t <DOCKERHUB-USERNAME>/stor674-hw5:latest .
+docker build --platform linux/amd64 -t rmharp23/stor674-homework5:latest .
 ```
 
 **Explanation:**
 
 - `docker build`: build a container image from a Dockerfile
-- `-t <DOCKERHUB-USERNAME>/stor674-hw5:latest`: tag the image with repo/name and tag for pushing
-- `.`: use the current directory as the build context (where the Dockerfile and script live)
+- `-t rmharp23/stor674-homework5:latest`: tag the image with repo/name and tag for pushing
+- `.`: use the current directory as the build context, where the Dockerfile and script live
 
 
 **b)** (4 points) What command did you use to run your Docker image locally to test it? Include the output you received.
@@ -239,27 +239,24 @@ docker build -t <DOCKERHUB-USERNAME>/stor674-hw5:latest .
 
 ```bash
 # Your command here
-# CPU-only test (works anywhere)
-docker run --rm <DOCKERHUB-USERNAME>/stor674-hw5:latest
-
-# If you have an NVIDIA GPU with Docker + nvidia-container-toolkit installed:
-docker run --rm --gpus all <DOCKERHUB-USERNAME>/stor674-hw5:latest
+docker run --rm --platform linux/amd64 rmharp23/stor674-homework5:latest
 ```
 
 **Output:**
 
 ```
 # Paste the output here
-# Example (truncated):
+# WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
 # No GPU available, running on CPU only
-#
+# 
 # CPU Computations:
-# Time for 10,000,000 elements: 0.9xxx seconds
-# Time for 100,000,000 elements: 9.xxxx seconds
-#
+# Time for 10,000,000 elements: 0.1438 seconds
+# Time for 100,000,000 elements: 1.2517 seconds
+# 
 # Small sample of 10 random numbers:
-# tensor([...])
-#
+# tensor([-0.1326, -1.5500,  1.1859,  1.5597,  0.7008, -0.4011, -1.1648,  0.1153,
+#         -0.3273, -0.3363])
+# 
 # Saved data to mydata.pt
 ```
 
@@ -267,10 +264,9 @@ docker run --rm --gpus all <DOCKERHUB-USERNAME>/stor674-hw5:latest
 
 **Answer:**
 
-- If GPU wasn’t detected, I added `--gpus all` on `docker run` and ensured the NVIDIA container toolkit was installed.
-- For memory errors on very large tensors, I reduced the problem size or increased resources.
-- On Apple Silicon, Linux CUDA containers won’t use Apple’s MPS backend; local tests can still run on CPU. For native macOS Python (outside Docker), MPS can be used if enabled, but inside a Linux container it will not apply.
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
 
+I resolved the warning by adding `--platform linux/amd64` to the `docker build` and `docker run` commands.
 
 ## Question 2.4: Version Control Your Docker Build (10 points)
 
@@ -283,7 +279,7 @@ Now that you have a working Dockerfile, let's commit it and merge it into the ma
 ```bash
 # Commands to add and commit Dockerfile
 git add Dockerfile
-git commit -m "Add CUDA-enabled Dockerfile for PyTorch benchmark"
+git commit -m "Add Dockerfile for PyTorch benchmark"
 ```
 
 **b)** (4 points) Switch to the `main` branch and merge the `docker-build` branch into it. What commands did you use? Paste the merge message or output.
@@ -292,19 +288,19 @@ git commit -m "Add CUDA-enabled Dockerfile for PyTorch benchmark"
 
 ```bash
 # Commands to switch branch and merge
-git switch main
+git checkout main
 git pull
-git merge --no-ff docker-build -m "Merge docker-build into main"
+git merge docker-build -m "Merge docker-build into main"
 ```
 
 **Merge Output:**
 
 ```
 # Paste merge output here
-# Example:
 # Merge made by the 'ort' strategy.
-#  Dockerfile | 8 ++++++++
-#  1 file changed, 8 insertions(+)
+#  Dockerfile | 7 +++++++
+#  1 file changed, 7 insertions(+)
+#  create mode 100644 Dockerfile
 ```
 
 **c)** (3 points) Push your changes to GitHub. Verify that your repository now contains the Dockerfile on the main branch. What command did you use to push?
@@ -313,19 +309,18 @@ git merge --no-ff docker-build -m "Merge docker-build into main"
 
 ```bash
 # Command to push to GitHub
-git push origin main
+git push
 ```
 
 **Verification:** Visit your GitHub repository in a web browser and confirm the Dockerfile is visible. ✓
-
+![Github Repository](media/github.png)
 
 ## Question 2.5: Push to Docker Hub (10 points)
 
 **a)** (3 points) Create a Docker Hub account (if you don't have one) and provide your Docker Hub username.
 
 **Docker Hub Username:**
-
-<REPLACE-WITH-YOUR-DOCKERHUB-USERNAME>
+rmharp23
 
 
 **b)** (4 points) Tag your image appropriately and push it to Docker Hub. What commands did you use?
@@ -335,11 +330,7 @@ git push origin main
 ```bash
 # Commands you used
 docker login
-# If you built with the same tag, pushing is:
-docker push <DOCKERHUB-USERNAME>/stor674-hw5:latest
-# If needed, retag:
-# docker tag localname:latest <DOCKERHUB-USERNAME>/stor674-hw5:latest
-# docker push <DOCKERHUB-USERNAME>/stor674-hw5:latest
+docker push rmharp23/stor674-homework5:latest
 ```
 
 **c)** (3 points) Provide the full Docker Hub image URL/name that others can use to pull your image.
@@ -348,7 +339,7 @@ docker push <DOCKERHUB-USERNAME>/stor674-hw5:latest
 
 ```
 # Format: username/imagename:tag
-<DOCKERHUB-USERNAME>/stor674-hw5:latest
+rmharp23/stor674-homework5:latest
 ```
 
 ---
@@ -363,14 +354,14 @@ In this section, you will download your Docker image using Apptainer on UNC's Lo
 
 **Answer:**
 
-Apptainer is a container runtime designed for HPC. Unlike Docker, it runs without a privileged daemon and supports unprivileged execution, which aligns with HPC security policies. It integrates cleanly with shared filesystems, modules, and schedulers (Slurm), and emphasizes reproducibility and portability for scientific workflows.
+Apptainer is a container runtime designed for HPC. Unlike Docker, it runs without a privileged daemon and supports unprivileged execution, which aligns with HPC security policies. It integrates cleanly with shared filesystems, modules, and schedulers (e.g. Slurm) and emphasizes reproducibility and portability for scientific workflows.
 
 
 **b)** (2 points) What does "Bring Your Own Environment" (BYOE) mean in the context of HPC and containers?
 
 **Answer:**
 
-BYOE means users package their software stack (OS base, libraries, and tools) in a container image and bring that environment to the cluster. This avoids dependency conflicts, ensures reproducibility, and decouples user software from the cluster’s base environment.
+BYOE means users package their software stack (OS base, libraries, and tools) in a container image and bring that environment to the cluster. This avoids dependency conflicts, ensures reproducibility, and decouples user software from the cluster's base environment.
 
 
 ## Question 3.2: Convert Docker Image to Apptainer (10 points)
@@ -382,7 +373,7 @@ BYOE means users package their software stack (OS base, libraries, and tools) in
 ```bash
 # Command to pull/convert Docker image to Apptainer
 module load apptainer
-apptainer pull --name stor674-hw5.sif docker://<DOCKERHUB-USERNAME>/stor674-hw5:latest
+apptainer pull --name stor674-hw5.sif docker://rmharp23/stor674-homework5:latest
 ```
 
 **b)** (3 points) What is the name of the Apptainer image file (.sif) that was created?
@@ -400,10 +391,7 @@ stor674-hw5.sif
 
 ```bash
 # Command to run Apptainer image
-# Option 1: execute the script directly
-apptainer exec --nv stor674-hw5.sif python /app/compute_bench.py
-# Option 2: interactive shell
-# apptainer shell --nv stor674-hw5.sif
+apptainer shell --nv stor674-hw5.sif
 ```
 
 ## Question 3.3: Create Slurm Job Script (12 points)
@@ -426,11 +414,9 @@ Create a Slurm job script that runs your containerized `compute_bench.py` using 
 
 ```bash
 #!/bin/bash
-
-# Paste your Slurm script here
-#
 #SBATCH -J hw5-bench
 #SBATCH -p gpu
+#SBATCH --qos=gpu_access
 #SBATCH --gres=gpu:1
 #SBATCH -t 00:10:00
 #SBATCH --mem=8G
@@ -439,13 +425,15 @@ Create a Slurm job script that runs your containerized `compute_bench.py` using 
 
 module purge
 module load apptainer
+IMAGE="/nas/longleaf/home/rmharp/STOR674/stor674-hw5.sif"
 
-IMAGE="$SLURM_SUBMIT_DIR/stor674-hw5.sif"
 echo "Running on host: $(hostname)"
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 echo "Starting at: $(date)"
 
-# Enable NVIDIA support and execute the benchmark inside the container
-apptainer exec --nv "$IMAGE" python /app/compute_bench.py
+# Bind the submit dir as the working dir and run your script from there
+apptainer exec --nv --bind "$SLURM_SUBMIT_DIR:/work" --pwd /work "$IMAGE" \
+  python compute_bench.py
 
 echo "Finished at: $(date)"
 ```
@@ -470,14 +458,32 @@ sbatch run_compute_bench.sh
 
 **Job Output:**
 
-```
 # Paste your job output here
-<PASTE slurm-<JOBID>.out CONTENTS HERE>
-```
+Running on host: g0605.ll.unc.edu
+CUDA_VISIBLE_DEVICES=0
+Starting at: Fri Nov 14 01:46:16 AM EST 2025
+GPU available: NVIDIA GeForce GTX 1080
+
+CPU Computations:
+Time for 10,000,000 elements: 0.1858 seconds
+Time for 100,000,000 elements: 1.7231 seconds
+
+GPU Computations:
+Time for 10,000,000 elements: 0.6560 seconds
+Time for 100,000,000 elements: 0.0146 seconds
+
+Small sample of 10 random numbers:
+tensor([ 0.3367,  0.1288,  0.2345,  0.2303, -1.1229, -0.1863,  2.2082, -0.6380,
+         0.4617,  0.2674])
+
+Saved data to mydata.pt
+Finished at: Fri Nov 14 01:46:26 AM EST 2025
 
 **GitHub Verification:** ✓ Pushed `run_compute_bench.sh` to repository
 
 **c)** (BONUS: +2 points) Include a screenshot showing your job in the Slurm queue or completed job information using `squeue` or `sacct`. Also show that your job successfully utilized a GPU (if you requested one).
+![Slurm Queue](media/squeue.png)
+![GPU Usage](media/gpu.png)
 
 ---
 
@@ -487,7 +493,7 @@ sbatch run_compute_bench.sh
 
 **Answer:**
 
-Containerizing the environment (and versioning both code and Dockerfiles) captures not only algorithms but also dependencies and system libraries, making results portable and reproducible across machines (laptop → cluster). Advantages include easier collaboration, consistent builds, and cleaner deployments to HPC via Apptainer. Challenges include larger images, GPU/runtime driver nuances, and the learning curve for container + scheduler tooling. Good CI/CD and clear documentation mitigate these issues.
+Containerizing the environment, and versioning both code and Dockerfiles, captures not only algorithms but also dependencies and system libraries, making results portable and reproducible across machines. Advantages include easier collaboration, consistent builds, and cleaner deployments to HPC via Apptainer. Challenges include larger images, GPU/runtime driver nuances, and the learning curve for container + scheduler tooling. However, dedicating time to setting up CI/CD with tools like GitHub Actions and Jenkins, as well as clear documentation, can mitigate these issues.
 
 
 ---
